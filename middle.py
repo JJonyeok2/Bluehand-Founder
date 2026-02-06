@@ -169,6 +169,13 @@ st.markdown("""
         justify-content: center !important;
         align-items: center !important;
     }
+
+    /* 12. 사이드바 너비 고정 */
+    section[data-testid="stSidebar"] {
+        width: 350px !important;
+        min-width: 350px !important;
+        max-width: 350px !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -177,7 +184,7 @@ FILTER_OPTIONS = {
     "is_ev": "⚡ 전기차 전담",
     "is_hydrogen": "💧 수소차 전담",
     "is_frame": "🔨 판금/차체 수리",
-    "is_excellent": "🏆 우수 협력점",
+    "is_cs_excellent": "🏆 우수 협력점",
     "is_n_line": "🏎️ N-Line 전담",
 }
 # SQL 쿼리 작성 시 SELECT 절에 넣기 위해 키값들을 쉼표로 연결한 문자열 생성
@@ -193,170 +200,18 @@ DB_CONFIG = {
     "charset": "utf8mb4",
 }
 
-def get_conn():
-    return mysql.connector.connect(**DB_CONFIG)
-
 # 한 페이지당 보여줄 목록의 개수 설정
 PAGE_SIZE = 5
 
 
-
-def _service_text_from_row(row: dict) -> str:
-    """
-    DB에서 가져온 행(row) 데이터 중 값이 1인 필터 항목만 추출하여
-    화면에 보여줄 문자열(예: 전기차 전담 · 우수 협력점)로 변환합니다.
-    """
-    labels = [label for col, label in FILTER_OPTIONS.items() if row.get(col) == 1]
-    return " · ".join(labels)
-
-
-def render_hy_table_page(rows_page: list[dict]):
-    """
-    데이터 리스트를 받아 HTML 테이블 형태로 렌더링하는 함수입니다.
-    Streamlit 기본 데이터프레임보다 더 예쁜 디자인을 위해 HTML/CSS를 직접 사용합니다.
-    """
-    # 테이블 스타일 정의 (CSS)
-    css = """
-    <style>
-      table.hy { width:100%; border-collapse:collapse; table-layout:fixed; }
-      table.hy thead th{
-        background:#0b3b68; color:#fff; padding:12px 10px; text-align:center;
-        font-weight:800; border:1px solid #ffffff33; font-size:14px;
-      }
-      table.hy tbody td{
-        border:1px solid #e6e6e6; padding:14px 12px; vertical-align:middle;
-        font-size:14px; background:#fff; word-break:break-word;
-      }
-      .c-name{ width:22%; text-align:center; font-weight:800; }
-      .c-addr{ width:48%; text-align:center; }
-      .c-phone{ width:15%; text-align:center; }
-      .c-svc{ width:15%; text-align:center; }
-      .svc{ font-weight:800; color:#0b3b68; }
-      .muted{ color:#777; }
-    </style>
-    """
-
-    def s(x): return "" if x is None else str(x)  # None 값을 빈 문자열로 처리하는 헬퍼
-
-    # 각 행 데이터를 HTML <tr> 태그로 변환
-    trs = []
-    for r in rows_page:
-        name = s(r.get("name"))
-        addr = s(r.get("address"))
-        phone = s(r.get("phone"))
-        svc = _service_text_from_row(r)
-        svc_html = f'<span class="svc">{svc}</span>' if svc else '<span class="muted">-</span>'
-
-        trs.append(f"""
-          <tr>
-            <td class="c-name">{name}</td>
-            <td class="c-addr">{addr}</td>
-            <td class="c-phone">{phone}</td>
-            <td class="c-svc">{svc_html}</td>
-          </tr>
-        """)
-
-    # 최종 HTML 조립
-    html = f"""
-    {css}
-    <table class="hy">
-      <thead>
-        <tr>
-          <th>업체명</th>
-          <th>주소</th>
-          <th>전화번호</th>
-          <th>서비스 옵션</th>
-        </tr>
-      </thead>
-      <tbody>
-        {''.join(trs) if trs else '<tr><td colspan="4" style="text-align:center;padding:16px;">검색 결과가 없습니다.</td></tr>'}
-      </tbody>
-    </table>
-    """
-    # Streamlit 컴포넌트로 HTML 렌더링 (높이는 데이터 개수에 따라 자동 조절)
-    components.html(html, height=120 + 62 * max(1, len(rows_page)), scrolling=False)
-
-
-def render_paginated_table(rows_all: list[dict]):
-    total = len(rows_all)
-    total_pages = max(1, math.ceil(total / PAGE_SIZE))
-
-    if "page" not in st.session_state:
-        st.session_state.page = 1
-
-    st.session_state.page = max(1, min(st.session_state.page, total_pages))
-    page_now = st.session_state.page
-
-    # 현재 페이지 데이터 렌더
-    start = (page_now - 1) * PAGE_SIZE
-    end = start + PAGE_SIZE
-    render_hy_table_page(rows_all[start:end])
-
-    # ===============================
-    # ✅ 세션 기반 블록 페이징 (리셋 X)
-    # ===============================
-    BLOCK_SIZE = 5
-    current_block = (page_now - 1) // BLOCK_SIZE
-    start_page = current_block * BLOCK_SIZE + 1
-    end_page = min(start_page + BLOCK_SIZE - 1, total_pages)
-
-    # 버튼 스타일(작게/촘촘)
-    st.markdown("""
-    <style>
-      div[data-testid="stButton"] > button {
-        padding: 0.3rem 0.6rem;
-        min-width: 2.2rem;
-        border-radius: 10px;
-      }
-    </style>
-    """, unsafe_allow_html=True)
-
-    # 가운데에 모으기
-    left_sp, center_sp, right_sp = st.columns([10, 3, 10], gap="small")
-
-    with center_sp:
-        items = []
 # -----------------------------------------------------------------------------
 # 2. 헬퍼 함수 정의
 # -----------------------------------------------------------------------------
 
-        has_prev = start_page > 1
-        has_next = end_page < total_pages
+def get_conn():
+    """DB 연결 객체를 생성하여 반환합니다."""
+    return mysql.connector.connect(**DB_CONFIG)
 
-        if has_prev:
-            items.append(("PREV", "pg_prev_block"))   # 라벨은 아래에서 «로 표시
-
-        for p in range(start_page, end_page + 1):
-            items.append((p, f"pg_{p}"))
-
-        if has_next:
-            items.append(("NEXT", "pg_next_block"))
-
-        cols = st.columns([1] * len(items), gap="small")
-
-        for i, (val, key) in enumerate(items):
-            # « 이전 블록
-            if val == "PREV":
-                if cols[i].button("«", key=key):
-                    st.session_state.page = start_page - 1
-                    st.rerun()
-
-            # » 다음 블록
-            elif val == "NEXT":
-                if cols[i].button("»", key=key):
-                    st.session_state.page = end_page + 1
-                    st.rerun()
-
-            # 숫자 페이지
-            else:
-                p = int(val)
-                if cols[i].button(
-                    str(p),
-                    type="primary" if p == page_now else "secondary",
-                    key=key
-                ):
-                    st.session_state.page = p
-                    st.rerun()
 
 def haversine(lon1, lat1, lon2, lat2):
     """
@@ -539,7 +394,6 @@ def render_paginated_table(rows_all: list[dict]):
     end_idx = start_idx + PAGE_SIZE
 
     # 카드형 컨테이너 안에 테이블 렌더링
-    st.markdown('<div class="stCard">', unsafe_allow_html=True)
     render_hy_table_page(rows_all[start_idx:end_idx])
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -686,7 +540,8 @@ st.markdown("""
 
 # (1) GPS 확인 로직
 # 브라우저의 Geolocation API를 사용하여 현재 위치 좌표 획득
-loc = get_geolocation()
+# [수정] duplicate key 에러 해결을 위해 key 파라미터를 'component_key'로 변경
+loc = get_geolocation(component_key="main_geolocation")
 user_lat, user_lng = None, None
 if loc and 'coords' in loc:
     user_lat, user_lng = loc['coords']['latitude'], loc['coords']['longitude']
@@ -723,10 +578,6 @@ with st.sidebar:
 
     with col2:
         # 검색 버튼 클릭 시 스크롤 이동
-        if st.button("검색", use_container_width=True):
-            st.session_state.page = 1
-            if search_query:
-                scroll_down()
         if st.button("검색", type="primary", use_container_width=True):  # Primary 타입으로 강조
             if search_query: scroll_down()
 
@@ -762,7 +613,6 @@ if should_search:
         map_center = [user_lat, user_lng]
 
     # 지도 생성 및 마커 추가 (카드형 컨테이너 적용)
-    st.markdown('<div class="stCard">', unsafe_allow_html=True)
     m = folium.Map(location=map_center, zoom_start=13)
     LocateControl().add_to(m)  # 현재 위치 찾기 버튼 추가
 
@@ -785,7 +635,6 @@ else:
     st.info("👈 왼쪽 사이드바에서 원하는 지역과 정비 옵션을 선택하거나, 지점명을 검색해보세요.")
 
     # 초기 화면 지도: 기본 위치(강남역) 보여줌
-    st.markdown('<div class="stCard">', unsafe_allow_html=True)
     m = folium.Map(location=[37.4979, 127.0276], zoom_start=13)
     st_folium(m, height=450, use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
