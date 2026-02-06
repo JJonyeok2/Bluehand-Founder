@@ -1,8 +1,9 @@
 <div align="center">
-  <img src="Hyundai.jpeg" width="512" height="512" style="border-radius: 50%; object-fit: cover; object-position: center;" />
+  <img src="Hyundai.jpg" width="512" height="512" style="border-radius: 50%; object-fit: cover; object-position: center;" />
   <br/>
 
 # 🚘 블루핸즈 통합 검색 서비스 (Bluehands Finder)
+</div>
 
 사용자의 현재 위치 또는 선택한 지역을 기반으로 **현대자동차 블루핸즈(Bluehands)** 정비소를 조회하고, 원하는 정비 옵션(전기차, 수소차, 판금 등)별로 필터링하여 지도와 목록으로 보여주는 웹 애플리케이션입니다.
 
@@ -30,13 +31,15 @@
 ## ⚙️ 설치 및 실행 방법
 
 ### 1. 환경 설정 및 패키지 설치
+
 ```bash
 # 필수 라이브러리 설치
 pip install streamlit mysql-connector-python pandas folium streamlit-folium streamlit-js-eval
 ```
 
-2. 데이터베이스 설정 (MySQL)
+### 2. 데이터베이스 설정 (MySQL)
 프로젝트 실행을 위해 MySQL에 데이터베이스와 테이블이 생성되어 있어야 합니다.
+
 ```sql
 CREATE DATABASE IF NOT EXISTS bluehands_db;
 USE bluehands_db;
@@ -64,10 +67,12 @@ CREATE TABLE bluehands (
     FOREIGN KEY (region_id) REFERENCES regions(id)
 );
 ```
-3. DB 연결 정보 수정
-소스 코드 내의 DB_CONFIG 딕셔너리를 본인의 MySQL 환경에 맞게 수정해주세요.
 
-### main.py (또는 해당 파일의 내용 수정)
+### 3. DB 연결 정보 수정
+소스 코드 내의 `DB_CONFIG` 딕셔너리를 본인의 MySQL 환경에 맞게 수정해주세요.
+
+**main.py (또는 해당 파일의 내용 수정)**
+```python
 DB_CONFIG = {
     "host": "localhost",
     "user": "root",           # 본인의 MySQL 유저명
@@ -75,14 +80,19 @@ DB_CONFIG = {
     "database": "bluehands_db",
     "charset": "utf8mb4",
 }
+```
 
-4. 애플리케이션 실행
+### 4. 애플리케이션 실행
+
 ```bash
 streamlit run final.py # 최종 실행 파일은 final.py 입니다.
- ```
+```
 
-📂 프로젝트 구조
+## 📂 프로젝트 구조
+
+```text
 📦 bluehands-finder
  ┣ 📜 final.py          # 메인 애플리케이션 소스 코드
- ┣ 📜 elses             #
- ┗ 📜 README.md        # 프로젝트 설명서
+ ┣ 📜 elses             # 기타 파일들
+ ┗ 📜 README.md         # 프로젝트 설명서
+```
