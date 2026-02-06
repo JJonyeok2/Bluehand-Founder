@@ -152,13 +152,6 @@ st.markdown(
         justify-content: center !important;
         align-items: center !important;
     }
-
-    /* 12. 사이드바 너비 고정 */
-    section[data-testid="stSidebar"] {
-        width: 350px !important;
-        min-width: 350px !important;
-        max-width: 350px !important;
-    }
 </style>
 """,
     unsafe_allow_html=True,
@@ -169,11 +162,7 @@ FILTER_OPTIONS = {
     "is_ev": "⚡ 전기차 전담",
     "is_hydrogen": "💧 수소차 전담",
     "is_frame": "🔨 판금/차체 수리",
-<<<<<<< HEAD
-    "is_cs_excellent": "🏆 우수 협력점",
-=======
     "is_cs_excellent": "🏆 우수 협력점",  # (확정) 컬럼명
->>>>>>> 3ac7b89582343eed61246cf13810f3904841112c
     "is_n_line": "🏎️ N-Line 전담",
 }
 FLAG_COLS_SQL = ", ".join(FILTER_OPTIONS.keys())
@@ -408,10 +397,6 @@ def render_paginated_table(rows_all: list[dict]):
     start_idx = (page_now - 1) * PAGE_SIZE
     end_idx = start_idx + PAGE_SIZE
 
-<<<<<<< HEAD
-    # 카드형 컨테이너 안에 테이블 렌더링
-=======
->>>>>>> 3ac7b89582343eed61246cf13810f3904841112c
     render_hy_table_page(rows_all[start_idx:end_idx])
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -477,7 +462,7 @@ def get_regions():
     try:
         conn = get_conn()
         cursor = conn.cursor()
-        cursor.execute("SELECT name FROM bluehands_db.regions ORDER BY id")
+        cursor.execute("SELECT name FROM regions ORDER BY id")
         return [row[0] for row in cursor.fetchall()]
     except Exception:
         return []
@@ -548,13 +533,7 @@ st.markdown(
 )
 
 # (1) GPS 확인 로직
-<<<<<<< HEAD
-# 브라우저의 Geolocation API를 사용하여 현재 위치 좌표 획득
-# [수정] duplicate key 에러 해결을 위해 key 파라미터를 'component_key'로 변경
-loc = get_geolocation(component_key="main_geolocation")
-=======
 loc = get_geolocation()
->>>>>>> 3ac7b89582343eed61246cf13810f3904841112c
 user_lat, user_lng = None, None
 if loc and "coords" in loc:
     user_lat, user_lng = loc["coords"]["latitude"], loc["coords"]["longitude"]
@@ -620,11 +599,7 @@ if should_search:
     elif user_lat:
         map_center = [user_lat, user_lng]
 
-<<<<<<< HEAD
-    # 지도 생성 및 마커 추가 (카드형 컨테이너 적용)
-=======
     # 지도 카드 컨테이너
->>>>>>> 3ac7b89582343eed61246cf13810f3904841112c
     m = folium.Map(location=map_center, zoom_start=13)
     LocateControl().add_to(m)
 
@@ -637,9 +612,6 @@ if should_search:
     if data_list:
         add_markers_to_map(m, data_list, user_lat, user_lng)
 
-<<<<<<< HEAD
-    # 초기 화면 지도: 기본 위치(강남역) 보여줌
-=======
     st_folium(m, height=500, use_container_width=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -648,7 +620,6 @@ if should_search:
 
 else:
     st.info("👈 왼쪽 사이드바에서 원하는 지역과 정비 옵션을 선택하거나, 지점명을 검색해보세요.")
->>>>>>> 3ac7b89582343eed61246cf13810f3904841112c
     m = folium.Map(location=[37.4979, 127.0276], zoom_start=13)
     st_folium(m, height=450, use_container_width=True)
     st.markdown("</div>", unsafe_allow_html=True)
