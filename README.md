@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="resource/Hyndai.jpg" alt="Hyndai" height="280" />
+  <img src="resource/Hyundai.jpg" alt="Hyundai" height="280" />
 </p>
 
 # 🚘 블루핸즈 통합 검색 서비스 (Bluehands Finder)
