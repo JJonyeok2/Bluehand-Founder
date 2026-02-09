@@ -9,6 +9,7 @@ from streamlit_folium import st_folium
 
 st.title("현재 사용자 위치")
 
+
 # 사용자 위치 지도 출력
 st.set_page_config(layout="centered")
 
