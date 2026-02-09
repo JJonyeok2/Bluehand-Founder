@@ -273,7 +273,7 @@ streamlit run final.py # 최종 실행 파일은 final.py 입니다.
         <tr>
             <td style="text-align: center; border: 1px solid #ddd;">전종혁</td>
             <td style="border: 1px solid #ddd; padding: 10px;">처음부터 프로젝트의 방향성을 고민하고 일을 진행시키는 추진력을 보면서 기획자로 가능성을 보았습니다.</td>
-        </tr>  
+        </tr> 
           </tbody>
 </table>
 
